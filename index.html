@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>REALDRIVE ULTRA — Playable Prototype</title>
+<title>REALDRIVE ULTRA — Enhanced Driving Prototype</title>
 <style>
 :root{--glass:#101b27d9;--edge:#ffffff2a;--cyan:#8cecff;--white:#f3f8ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9ebdce;color:var(--white);font-family:system-ui,Arial,sans-serif;touch-action:none}canvas{display:block}
@@ -32,7 +32,7 @@ button:active,.held{filter:brightness(1.35);transform:translateY(1px)}
 <body>
 <div id="view"></div>
 <div id="top">
- <div class="brand panel"><b>REALDRIVE <span style="color:#8cecff">ULTRA</span></b><small>OPEN CITY • DRIVING PROTOTYPE</small></div>
+ <div class="brand panel"><b>REALDRIVE <span style="color:#8cecff">ULTRA</span></b><small>OPEN CITY • ENHANCED CAR SIM</small></div>
  <div class="stats">
   <div class="stat panel"><small>SPEED</small><strong id="speed">0</strong><small>KM/H</small></div>
   <div class="stat panel"><small>RPM</small><strong id="rpm">850</strong></div>
@@ -49,7 +49,7 @@ button:active,.held{filter:brightness(1.35);transform:translateY(1px)}
  <div id="pedals"><div id="brake" class="pedal"><span>▾</span><small>BRAKE</small></div><div id="gas" class="pedal gas"><span>▲</span><small>THROTTLE</small></div></div>
 </div>
 <div id="help" class="panel">Keyboard: W/↑ throttle · S/↓ brake/reverse · A/D steer<br>Space handbrake · H horn · C camera · L lights · P pause · R repair</div>
-<div id="overlay"><div id="card" class="panel"><h1>REALDRIVE <span>ULTRA</span></h1><p>Playable browser prototype using Three.js and Cannon-es physics. Drive through a procedural city, interact with traffic, crash into objects, inspect damage, and switch cameras.</p><p>Internet is required to load the 3D libraries. Desktop: keyboard. Phone/tablet: steering joystick and pedals.</p><button id="start">START ENGINE & DRIVE</button></div></div>
+<div id="overlay"><div id="card" class="panel"><h1>REALDRIVE <span>ULTRA</span></h1><p>Enhanced browser driving prototype with detailed sedan styling, cabin details, traffic, collision feedback and four camera views. It is inspired by driving simulators, but is not a full BeamNG.drive replacement.</p><p>Internet is required to load the 3D libraries. Desktop: keyboard. Phone/tablet: steering joystick and pedals.</p><button id="start">START ENGINE & DRIVE</button></div></div>
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","cannon-es":"https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"}}
 </script>
@@ -150,6 +150,55 @@ meshBox(steering,.025,.27,.025,M.chrome,0,0,0,false);
 meshBox(carRoot,.38,.19,.04,mat(0x142a3a,.2),.25,.83,-.63,false);
 for(const x of [-.62,.62]){meshBox(carRoot,.34,.12,.07,M.light,x,.64,-2.04);meshBox(carRoot,.34,.12,.07,M.tail,x,.64,2.04)}
 meshBox(carRoot,1.75,.17,.18,M.dark,0,.31,-2.04);meshBox(carRoot,1.75,.17,.18,M.dark,0,.31,2.04);
+// Extra exterior detail pass: front grille, bumper lips, door seams, handles,
+// wheel-arch trim, mirrors, glass highlights and rear exhausts.
+const grilleMat=mat(0x111820,.34,.42), trimMat=mat(0x687783,.3,.75), rubberTrim=mat(0x20262b,.72,.1);
+meshBox(carRoot,.78,.19,.055,grilleMat,0,.49,-2.075,false);
+for(let i=0;i<5;i++) meshBox(carRoot,.68,.012,.065,trimMat,0,.425+i*.032,-2.11,false);
+meshBox(carRoot,1.7,.09,.12,M.chrome,0,.36,-2.12,false);
+meshBox(carRoot,1.68,.075,.12,M.chrome,0,.35,2.11,false);
+// Fog lamps and indicator strips.
+for(const side of [-1,1]){
+ meshBox(carRoot,.12,.07,.035,M.light,side*.68,.47,-2.115,false);
+ meshBox(carRoot,.13,.045,.035,mat(0xffa52b,.35),side*.72,.7,-2.09,false);
+ // door seams and handles on both sides
+ for(const z of [-.38,.53]){
+  const seam=meshBox(carRoot,.012,.36,.012, rubberTrim,side*.934,.68,z,false);
+  meshBox(carRoot,.035,.025,.055,trimMat,side*.944,.79,z-.08,false);
+ }
+ // wheel arch dark trim arcs
+ for(const z of [-1.27,1.27]){
+  const arch=new THREE.Mesh(new THREE.TorusGeometry(.405,.035,8,24,Math.PI),rubberTrim);
+  arch.position.set(side*.79,.34,z);arch.rotation.z=Math.PI;arch.rotation.y=Math.PI/2;carRoot.add(arch);
+ }
+ // mirrors and mirror stalks
+ meshBox(carRoot,.08,.08,.17,M.dark,side*.93,.99,-.62,false);
+ meshBox(carRoot,.18,.13,.22,M.paint,side*1.02,1.04,-.64);
+ meshBox(carRoot,.13,.075,.018,M.glass,side*1.02,1.04,-.755,false);
+ // front and rear quarter window pillars
+ meshBox(carRoot,.055,.42,.055,M.dark,side*.72,1.01,-.64);
+ meshBox(carRoot,.055,.38,.055,M.dark,side*.72,1.0,.91);
+}
+// Hood creases, roof rails, windshield base and rear diffuser details.
+for(const side of [-1,1]){
+ const crease=meshBox(carRoot,.025,.012,1.05,M.chrome,side*.48,.755,-1.36,false);crease.rotation.x=-.015;
+ meshBox(carRoot,.035,.035,1.08,M.dark,side*.58,1.33,.02,false);
+}
+meshBox(carRoot,1.42,.045,.09,M.dark,0,.82,-.58,false);
+meshBox(carRoot,1.12,.055,.09,M.dark,0,.8,.94,false);
+for(const side of [-1,1]) meshBox(carRoot,.12,.07,.12,trimMat,side*.58,.31,2.13,false);
+// Cabin details: seat backs, headrests, center console and dashboard gauges.
+for(const x of [-.43,.43]){
+ meshBox(carRoot,.34,.46,.15,M.interior,x,.91,.36);
+ meshBox(carRoot,.26,.13,.12,M.interior,x,1.19,.34);
+ meshBox(carRoot,.32,.06,.35,M.dark,x,.68,.1,false);
+}
+meshBox(carRoot,.2,.16,.42,M.dark,0,.72,.05,false);
+meshBox(carRoot,.56,.08,.12,M.chrome,0,.82,-.34,false);
+for(let i=0;i<3;i++){
+ const gauge=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:i===1?0x55ddff:0xf2f5f7}));
+ gauge.position.set(-.49+i*.12,.88,-.565);gauge.rotation.y=Math.PI;carRoot.add(gauge);
+}
 // License plates
 function plate(txt,z,rotation){const c=document.createElement('canvas');c.width=256;c.height=64;const ctx=c.getContext('2d');ctx.fillStyle='#fafafa';ctx.fillRect(0,0,256,64);ctx.strokeStyle='#121820';ctx.lineWidth=5;ctx.strokeRect(2,2,252,60);ctx.fillStyle='#101820';ctx.font='bold 43px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,128,33);const tex=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(.75,.18),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));p.position.set(0,.37,z);p.rotation.y=rotation;carRoot.add(p)}
 plate('ODIL',-2.14,0);plate('ODIL',2.14,Math.PI);
